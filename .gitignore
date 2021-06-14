@@ -1,0 +1,8 @@
+.idea/
+.docker.env
+__pycache__/
+**/migrations/
+!**/migrations/__init__.py
+media/
+**/venv/
+db.sqlite3
