@@ -8,7 +8,7 @@ from . import managers
 from django.core.mail import send_mail
 
 
-class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
+class CustomAbstractUser(AbstractBaseUser):
     """
     An abstract base class implementing a fully featured User model with
     app-admin-compliant permissions.
@@ -146,7 +146,7 @@ class House(models.Model):
     invoice_options = models.CharField(max_length=255, verbose_name='Варианты расчёта')
     purpose = models.CharField(max_length=255, verbose_name='Назначение')
     contract_amount = models.CharField(max_length=255, verbose_name='Сумма в договоре')
-    manager = models.ForeignKey(ContactRelation, on_delete=models.CASCADE)
+    manager = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     celling_height = models.FloatField(null=True)
     gas = models.BooleanField(default=False)
     heating = models.CharField(choices=HEATING_TYPE, null=True, max_length=255)
@@ -174,45 +174,6 @@ class Floor(models.Model):
     name = models.CharField(max_length=255, verbose_name='Этаж')
 
 
-class Apartment(models.Model):
-    DOC_TYPE = (
-        ('Документ собственности', 'Документ собственности'),
-        ('Доверенность', 'Доверенность')
-    )
-    APART_TYPE = (
-        ('Апартаменты', 'Апартаменты'),
-        ('Пентхаус', 'Пентхаус')
-    )
-    APART_STATUS = (
-        ('Черновая отделка', 'Черновая отделка'),
-        ('Требует ремонта', 'Требует ремонта'),
-        ('Требует капитальный ремонт', 'Требует капитальный ремонт'),
-    )
-    HEATING_TYPE = (
-        ('Газ', 'Газ'),
-        ('Дрова', 'Дрова')
-    )
-    SETTLEMENT_TYPE = (
-        ('Мат. капитал', 'Мат. капитал'),
-        ('Ипотека', 'Ипотека')
-    )
-
-    floor = models.ForeignKey(Floor, on_delete=models.CASCADE)
-    document = models.CharField(choices=DOC_TYPE, max_length=255)
-    room_count = models.IntegerField()
-    apartment_type = models.CharField(choices=APART_TYPE, max_length=255)
-    apartment_status = models.CharField(choices=APART_STATUS, max_length=255)
-    apartment_area = models.FloatField()
-    kitchen_area = models.FloatField()
-    loggia = models.BooleanField(default=False)
-    heating_type = models.CharField(choices=HEATING_TYPE, max_length=255)
-    settlement_type = models.CharField(choices=SETTLEMENT_TYPE, max_length=255)
-
-
-class Image(models.Model):
-    image = models.ImageField(upload_to='image/')
-
-
 class Promotion(models.Model):
     PROMO_TYPE = (
         ('Большое объявление', 'Большое объявление'),
@@ -236,34 +197,79 @@ class Promotion(models.Model):
         ('Отдельная парковка', 'Отдельная парковка'),
     )
 
-    address = models.CharField(max_length=255, verbose_name='Адрес')
     type = models.CharField(choices=PROMO_TYPE, max_length=255)
     phrase = models.CharField(choices=PHRASE, max_length=255, verbose_name='Фраза')
     color = models.CharField(choices=COLOR, max_length=255)
     house = models.ForeignKey(House, on_delete=models.CASCADE)
 
 
-class Advertisement(models.Model):
+class Apartment(models.Model):
+    DOC_TYPE = (
+        ('Документ собственности', 'Документ собственности'),
+        ('Доверенность', 'Доверенность')
+    )
+    APART_TYPE = (
+        ('Апартаменты', 'Апартаменты'),
+        ('Пентхаус', 'Пентхаус')
+    )
+    APART_STATUS = (
+        ('Черновая отделка', 'Черновая отделка'),
+        ('Требует ремонта', 'Требует ремонта'),
+        ('Требует капитальный ремонт', 'Требует капитальный ремонт'),
+    )
+    HEATING_TYPE = (
+        ('Газ', 'Газ'),
+        ('Дрова', 'Дрова')
+    )
+    SETTLEMENT_TYPE = (
+        ('Мат. капитал', 'Мат. капитал'),
+        ('Ипотека', 'Ипотека')
+    )
     CONTACT_TYPE = (
         ('Звонок', 'Звонок'),
         ('Звонок + сообщение', 'Звонок + сообщение')
     )
+    ADV_TYPE = (
+        ('Первичный рынок', 'Первичный рынок'),
+        ('Вторичный рынок', 'Вторичный рынок')
+    )
+    APART_CLASS = (
+        ('Студия', 'Студия'),
+        ('Студия, санузел', 'Студия, санузел')
+    )
 
+    floor = models.ForeignKey(Floor, on_delete=models.CASCADE, null=True, blank=True)
+    document = models.CharField(choices=DOC_TYPE, max_length=255)
+    room_count = models.IntegerField()
+    apartment_type = models.CharField(choices=APART_TYPE, max_length=255)
+    apartment_status = models.CharField(choices=APART_STATUS, max_length=255)
+    apartment_area = models.FloatField()
+    kitchen_area = models.FloatField()
+    loggia = models.BooleanField(default=False)
+    heating_type = models.CharField(choices=HEATING_TYPE, max_length=255)
+    settlement_type = models.CharField(choices=SETTLEMENT_TYPE, max_length=255)
     contact = models.CharField(choices=CONTACT_TYPE, max_length=255)
-    apartment = models.ForeignKey(Apartment, on_delete=models.CASCADE)
-    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE)
+    promotion = models.ForeignKey(Promotion, on_delete=models.CASCADE, null=True, blank=True)
     commission = models.IntegerField()
     description = models.TextField()
+    price = models.IntegerField()
+    main_image = models.ImageField(upload_to='image/')
+    address = models.CharField(max_length=255)
+    adv_type = models.CharField(choices=ADV_TYPE, max_length=255)
+    apart_class = models.CharField(choices=APART_CLASS, max_length=255)
+    is_actual = models.BooleanField(default=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Владедец объявления', null=True, blank=True)
+    created_date = models.DateTimeField(auto_now=True, null=True)
 
 
-class AdvImgRelations(models.Model):
-    adv = models.ForeignKey(Advertisement, on_delete=models.CASCADE)
-    img = models.ForeignKey(Image, on_delete=models.CASCADE)
+class ApartImgRelations(models.Model):
+    apart = models.ForeignKey(Apartment, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='image/')
 
 
-class UserAdvRelation(models.Model):
+class UserApartRelation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    adv = models.ForeignKey(Advertisement, on_delete=models.CASCADE)
+    apart = models.ForeignKey(Apartment, on_delete=models.CASCADE)
 
 
 class Message(models.Model):
