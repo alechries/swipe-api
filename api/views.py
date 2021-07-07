@@ -8,8 +8,8 @@ from django_filters import rest_framework as filters
 
 
 class ApartmentList(generics.ListAPIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication, BasicAuthentication]
+    # permission_classes = [IsAuthenticated]
     serializer_class = serializers.ApartmentListSerializer
     queryset = models.Apartment.objects.all()
     filter_backends = (filters.DjangoFilterBackend,)
@@ -50,3 +50,12 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class UserCreate(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
+
+
+class PromoCreate(generics.CreateAPIView):
+    serializer_class = serializers.PromotionSerializer
+
+
+class HouseList(generics.ListAPIView):
+    serializer_class = serializers.HouseListSerializer
+    queryset = models.House.objects.all()

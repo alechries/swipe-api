@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 class PromotionSerializer(serializers.ModelSerializer):
     class Meta:
-        models = models.Promotion
+        model = models.Promotion
         fields = ('type', 'phrase', 'color')
 
 
@@ -13,15 +13,16 @@ class ApartmentListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Apartment
-        fields = ('main_image', 'promotion', 'price', 'address', 'created_date', 'room_count', 'apartment_area')
+        fields = ('id', 'main_image', 'promotion', 'price', 'address', 'created_date', 'room_count', 'apartment_area',
+                  'promotion', 'house', 'floor')
 
 
 class ApartmentDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Apartment
-        fields = ('main_image', 'price', 'address', 'adv_type', 'apartment_status', 'apartment_type', 'apart_class',
+        fields = ('id', 'main_image', 'price', 'address', 'adv_type', 'apartment_status', 'apartment_type', 'apart_class',
                   'apartment_area', 'kitchen_area', 'loggia', 'heating_type', 'settlement_type', 'commission',
-                  'description', 'owner')
+                  'description', 'owner', 'promotion')
 
 
 class ApartmentCreateSerializer(serializers.ModelSerializer):
@@ -62,3 +63,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = models.User
         fields = ['first_name', 'last_name', 'email', 'phone', 'subscribe_expired', 'subscribe', 'agent_first_name',
                   'agent_last_name', 'notification']
+
+
+class HouseListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.House
+        fields = '__all__'
+

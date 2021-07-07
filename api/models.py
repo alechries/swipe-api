@@ -203,10 +203,9 @@ class Promotion(models.Model):
         ('Отдельная парковка', 'Отдельная парковка'),
     )
 
-    type = models.CharField(choices=PROMO_TYPE, max_length=255)
-    phrase = models.CharField(choices=PHRASE, max_length=255, verbose_name='Фраза')
-    color = models.CharField(choices=COLOR, max_length=255)
-    house = models.ForeignKey(House, on_delete=models.CASCADE)
+    type = models.CharField(choices=PROMO_TYPE, max_length=255, null=True)
+    phrase = models.CharField(choices=PHRASE, max_length=255, verbose_name='Фраза', null=True)
+    color = models.CharField(choices=COLOR, max_length=255, null=True)
 
 
 class Apartment(models.Model):
@@ -244,6 +243,7 @@ class Apartment(models.Model):
         ('Студия, санузел', 'Студия, санузел')
     )
 
+    house = models.ForeignKey(House, on_delete=models.CASCADE, null=True)
     floor = models.ForeignKey(Floor, on_delete=models.CASCADE, null=True, blank=True)
     document = models.CharField(choices=DOC_TYPE, max_length=255)
     room_count = models.IntegerField()
