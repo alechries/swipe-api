@@ -12,6 +12,8 @@ DEBUG = int(os.environ.get("DEBUG", default=1))
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", None)
 ALLOWED_HOSTS = ALLOWED_HOSTS.split(" ") if ALLOWED_HOSTS else ["*"]
 
+AUTH_USER_MODEL = 'api.User'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,7 +24,6 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'django_filters',
-    'social_django',
 
     'api'
 ]
@@ -52,8 +53,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'social_django.context_processors.backends',
-                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -119,17 +118,22 @@ EASY_MAPS_GOOGLE_KEY = 'AIzaSyAMPq6gbs7dfX-AMgFtCvTpjK8ltHErwcY'
 
 
 REST_FRAMEWORK = {
-
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+   #'DEFAULT_RENDERER_CLASSES': (
+   #    'rest_framework.renderers.JSONRenderer',
+   #),
+   #'DEFAULT_PARSER_CLASSES': (
+   #    'rest_framework.parsers.JSONParser',
+   #),
    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 
 }
 
-SOCIAL_AUTH_POSTGRES_JSONFIELD = True
 
-AUTHENTICATION_BACKENDS = (
-    'social_core.backends.github.GithubOAuth2',
-    'django.contrib.auth.backends.ModelBackend',
-)
+
 
 SOCIAL_AUTH_GITHUB_KEY = 'f2b3a35b89b731898dc2'
 SOCIAL_AUTH_GITHUB_SECRET = '6928b7e3548142f8315094c99060841060a001b9'

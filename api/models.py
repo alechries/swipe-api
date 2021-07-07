@@ -8,7 +8,7 @@ from . import managers
 from django.core.mail import send_mail
 
 
-class CustomAbstractUser(AbstractBaseUser):
+class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     """
     An abstract base class implementing a fully featured User model with
     app-admin-compliant permissions.
@@ -42,7 +42,7 @@ class CustomAbstractUser(AbstractBaseUser):
             'Unselect this instead of deleting accounts.'
         ),
     )
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(_('date joined'), default=timezone.now, null=True)
 
     objects = managers.CustomUserManager()
 
@@ -85,20 +85,23 @@ class User(CustomAbstractUser):
     avatar = models.ImageField('Аватар', upload_to='images/user/', null=True)
     phone = models.CharField(max_length=255)
     subscribe = models.BooleanField(default=False)
-    subscribe_expired = models.DateTimeField()
+    subscribe_expired = models.DateTimeField(null=True)
     notification = models.CharField(choices=NOTIFY, default=0, max_length=55)
+    agent_first_name = models.CharField(max_length=255, null=True)
+    agent_last_name = models.CharField(max_length=255, null=True)
+    agent_email = models.EmailField(null=True)
+    agent_phone = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        app_label = 'api'
 
 
-class ContactRelation(models.Model):
-    TYPE = (
-        ('Нотариус', 'Нотариус'),
-        ('Менеджер по продаже', 'Менеджер по продаже'),
-        ('Агент', 'Агент')
-    )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_related')
-    contact = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contact_related')
-    contact_type = models.CharField(choices=TYPE, null=True, max_length=55)
-    blacklist_status = models.BooleanField(default=False)
+class Contact(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=255)
+    email = models.EmailField()
 
 
 class House(models.Model):
@@ -172,6 +175,9 @@ class Section(models.Model):
 class Floor(models.Model):
     section = models.ForeignKey(Section, on_delete=models.CASCADE)
     name = models.CharField(max_length=255, verbose_name='Этаж')
+
+    def __str__(self):
+        return self.name
 
 
 class Promotion(models.Model):

@@ -1,27 +1,14 @@
-from django.shortcuts import render
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
-
 from . import models
-from datetime import datetime
-from django.db.models import Q
-from itertools import chain
 from . import serializers
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
-from rest_framework.reverse import reverse
-from rest_framework.response import Response
 from . import filters as my_filter
-from rest_framework import generics
+from rest_framework import generics, request
 from django_filters import rest_framework as filters
-from rest_framework.filters import SearchFilter
-
-
-def auth(request):
-    return render(request, 'oauth.html')
 
 
 class ApartmentList(generics.ListAPIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = serializers.ApartmentListSerializer
     queryset = models.Apartment.objects.all()
@@ -29,9 +16,13 @@ class ApartmentList(generics.ListAPIView):
     filterset_class = my_filter.ApartmentFilter
 
 
-class ApartmentDetail(generics.RetrieveAPIView):
+class ApartmentDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ApartmentDetailSerializer
     queryset = models.Apartment.objects.all()
+
+
+class ApartmentCreate(generics.CreateAPIView):
+    serializer_class = serializers.ApartmentCreateSerializer
 
 
 class FloorCreate(generics.CreateAPIView):
@@ -41,3 +32,21 @@ class FloorCreate(generics.CreateAPIView):
 class FloorList(generics.ListAPIView):
     serializer_class = serializers.ApartmentListSerializer
     queryset = models.Floor.objects.all()
+
+
+class ContactList(generics.ListAPIView):
+    serializer_class = serializers.ContactListSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    queryset = models.Contact.objects.all()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = my_filter.ContactListFilter
+
+
+class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = serializers.UserSerializer
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    queryset = models.User.objects.all()
+
+
+class UserCreate(generics.CreateAPIView):
+    serializer_class = serializers.UserSerializer
