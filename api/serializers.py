@@ -58,6 +58,12 @@ class ContactListSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'first_name', 'last_name']
 
 
+class ContactCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Contact
+        fields = '__all__'
+
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.User
@@ -68,5 +74,21 @@ class UserSerializer(serializers.ModelSerializer):
 class HouseListSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.House
+        fields = ['id', 'address']
+
+
+class ContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Contact
         fields = '__all__'
+
+
+class HouseDetailSerializer(serializers.ModelSerializer):
+    manager = ContactSerializer()
+
+    class Meta:
+        model = models.House
+        fields = '__all__'
+
+
 

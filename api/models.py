@@ -97,7 +97,7 @@ class User(CustomAbstractUser):
 
 
 class Contact(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=255)
@@ -149,7 +149,7 @@ class House(models.Model):
     invoice_options = models.CharField(max_length=255, verbose_name='Варианты расчёта')
     purpose = models.CharField(max_length=255, verbose_name='Назначение')
     contract_amount = models.CharField(max_length=255, verbose_name='Сумма в договоре')
-    manager = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    manager = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True, blank=True)
     celling_height = models.FloatField(null=True)
     gas = models.BooleanField(default=False)
     heating = models.CharField(choices=HEATING_TYPE, null=True, max_length=255)
