@@ -1,10 +1,17 @@
+from datetime import datetime, timedelta
+
+import jwt
 from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.contrib.auth.models import BaseUserManager
+
+from project import settings
 from . import managers
+import random
 from django.core.mail import send_mail
 
 
@@ -73,6 +80,32 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+    @property
+    def token(self):
+        """
+        Позволяет нам получить токен пользователя, вызвав `user.token` вместо
+        `user.generate_jwt_token().
+
+        Декоратор `@property` выше делает это возможным.
+        `token` называется «динамическим свойством ».
+        """
+        return self._generate_jwt_token()
+
+    def _generate_jwt_token(self):
+        """
+        Создает веб-токен JSON, в котором хранится идентификатор
+        этого пользователя и срок его действия
+        составляет 60 дней в будущем.
+        """
+        dt = datetime.now() + timedelta(days=60)
+
+        token = jwt.encode({
+            'id': self.pk,
+            'exp': int(dt.strftime('%s'))
+        }, settings.SECRET_KEY, algorithm='HS256')
+
+        return token.decode('utf-8')
+
 
 class User(CustomAbstractUser):
     NOTIFY = (
@@ -82,18 +115,80 @@ class User(CustomAbstractUser):
         ('Отключить', 'Отключить'),
 
     )
-    avatar = models.ImageField('Аватар', upload_to='images/user/', null=True)
-    phone = models.CharField(max_length=255)
-    subscribe = models.BooleanField(default=False)
-    subscribe_expired = models.DateTimeField(null=True)
+    avatar = models.ImageField('Аватар', upload_to='images/user/', null=True, blank=True)
+    subscribe = models.BooleanField(default=False, blank=True)
+    subscribe_expired = models.DateTimeField(null=True, blank=True)
     notification = models.CharField(choices=NOTIFY, default=0, max_length=55)
-    agent_first_name = models.CharField(max_length=255, null=True)
-    agent_last_name = models.CharField(max_length=255, null=True)
-    agent_email = models.EmailField(null=True)
-    agent_phone = models.CharField(max_length=255, null=True)
+    agent_first_name = models.CharField(max_length=255, null=True, blank=True)
+    agent_last_name = models.CharField(max_length=255, null=True, blank=True)
+    agent_email = models.EmailField(null=True, blank=True)
+    agent_phone = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         app_label = 'api'
+
+
+class UserManager(BaseUserManager):
+    """
+    Django требует, чтобы пользовательские `User`
+    определяли свой собственный класс Manager.
+    Унаследовав от BaseUserManager, мы получаем много кода,
+    используемого Django для создания `User`.
+
+    Все, что нам нужно сделать, это переопределить функцию
+    `create_user`, которую мы будем использовать
+    для создания объектов `User`.
+    """
+
+    def _create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Указанный email пользователя должно быть установлено')
+
+        if not password:
+            raise ValueError('Данный пароль должен быть установлен')
+
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_user(self, username, email, password=None, **extra_fields):
+        """
+        Создает и возвращает `User` с адресом электронной почты,
+        именем пользователя и паролем.
+        """
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+
+        return self._create_user(username, email, password, **extra_fields)
+
+    def create_superuser(self, username, email, password, **extra_fields):
+        """
+        Создает и возвращает пользователя с правами
+        суперпользователя (администратора).
+        """
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Суперпользователь должен иметь is_staff=True.')
+
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Суперпользователь должен иметь is_superuser=True.')
+
+        return self._create_user(username, email, password, **extra_fields)
+
+
+class PhoneModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    Mobile = models.IntegerField(blank=False)
+    isVerified = models.BooleanField(blank=False, default=False)
+    counter = models.IntegerField(default=0, blank=False)   # For HOTP Verification
+
+    def __str__(self):
+        return str(self.Mobile)
 
 
 class Contact(models.Model):

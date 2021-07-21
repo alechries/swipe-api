@@ -9,4 +9,5 @@ class IsOwnerOrSuperuserOrReadOnly(BasePermission):
             request.user and
             request.user.is_authenticated and obj.owner == request.user or
             request.user.is_superuser
+            or obj.user == request.user
         )
