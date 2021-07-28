@@ -65,16 +65,7 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
         super().clean()
         self.email = self.__class__.objects.normalize_email(self.email)
 
-    def get_full_name(self):
-        """
-        Return the first_name plus the last_name, with a space in between.
-        """
-        full_name = '%s %s' % (self.first_name, self.last_name)
-        return full_name.strip()
 
-    def get_short_name(self):
-        """Return the short name for the user."""
-        return self.first_name
 
     def email_user(self, subject, message, from_email=None, **kwargs):
         """Send an email to this user."""
@@ -83,21 +74,30 @@ class CustomAbstractUser(AbstractBaseUser, PermissionsMixin):
     @property
     def token(self):
         """
-        Позволяет нам получить токен пользователя, вызвав `user.token` вместо
-        `user.generate_jwt_token().
-
-        Декоратор `@property` выше делает это возможным.
-        `token` называется «динамическим свойством ».
+        Позволяет получить токен пользователя путем вызова user.token, вместо
+        user._generate_jwt_token(). Декоратор @property выше делает это
+        возможным. token называется "динамическим свойством".
         """
         return self._generate_jwt_token()
 
+    def get_full_name(self):
+        """
+        Этот метод требуется Django для таких вещей, как обработка электронной
+        почты. Обычно это имя фамилия пользователя, но поскольку мы не
+        используем их, будем возвращать username.
+        """
+        return self.first_name
+
+    def get_short_name(self):
+        """ Аналогично методу get_full_name(). """
+        return self.first_name
+
     def _generate_jwt_token(self):
         """
-        Создает веб-токен JSON, в котором хранится идентификатор
-        этого пользователя и срок его действия
-        составляет 60 дней в будущем.
+        Генерирует веб-токен JSON, в котором хранится идентификатор этого
+        пользователя, срок действия токена составляет 1 день от создания
         """
-        dt = datetime.now() + timedelta(days=60)
+        dt = datetime.now() + timedelta(days=1)
 
         token = jwt.encode({
             'id': self.pk,
@@ -182,7 +182,7 @@ class UserManager(BaseUserManager):
 
 
 class PhoneModel(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='related_phone')
     Mobile = models.IntegerField(blank=False)
     isVerified = models.BooleanField(blank=False, default=False)
     counter = models.IntegerField(default=0, blank=False)   # For HOTP Verification

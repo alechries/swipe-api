@@ -4,6 +4,9 @@ from django.views.generic import TemplateView
 
 
 urlpatterns = [
+    path('registration/', views.RegistrationAPIView.as_view(), name='user_registration'),
+    path('login/', views.authenticate_user, name='user_login'),
+    path('update/', views.UserRetrieveUpdateAPIView, name='user_update'),
     path('verificate/<phone>/', views.PhoneNumberRegistered.as_view(), name="phone-login"),
     path('apartment/', views.ApartmentList.as_view(), name='apartment-list'),
     path('apartment/<int:pk>/', views.ApartmentDetail.as_view(), name='apartment-detail'),
